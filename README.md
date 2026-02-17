@@ -34,7 +34,6 @@ The system communicates with the **SSD1306 OLED** over **I2C1** (PB6:SCL, PB7:SD
 * **DMA Framebuffer Flush**: For high-bandwidth 1025-byte display updates, the system utilizes **DMA1 Stream 6 (Channel 1)**. This allows the entire display buffer to be pushed to the OLED with zero CPU intervention, maintaining high frame rates while the CPU executes control logic.
 * **Deterministic Polling**: Uses low-latency blocking sends for critical initialization commands, ensuring the peripheral is correctly synchronized before the main control loop starts.
 
-* 
 
 
 ---

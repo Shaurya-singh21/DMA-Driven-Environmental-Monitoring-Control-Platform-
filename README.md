@@ -1,4 +1,4 @@
-# 🧊 Deterministic Environmental Governor (DEG)
+# 🧊 DMA-Driven Environmental Monitoring & Control Platform 
 ### Register-Level STM32 Firmware for High-Reliability Enclosures
 
 ![STM32F446RE](https://img.shields.io/badge/MCU-STM32F446RE-blue?style=flat-square&logo=stmicroelectronics)

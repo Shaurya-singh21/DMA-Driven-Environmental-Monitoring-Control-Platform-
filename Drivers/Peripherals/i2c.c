@@ -6,11 +6,40 @@
 extern volatile uint8_t flag;
 
 
-
+static void delay_short(volatile uint32_t n){ while(n--); }
 
 void delay_ms(volatile uint32_t ms){
     while(ms--)
         for(volatile uint32_t i = 0; i < 1600; i++);
+}
+
+/* Bit-bang SCL to release a slave holding SDA low after an interrupted transfer.
+ * Must be called BEFORE pins are switched to AF mode (i2c_gpio_init). */
+void i2c_bus_recover(void) {
+    /* Temporarily set PB6(SCL), PB7(SDA) as GPIO open-drain outputs */
+    GPIOB->MODER  &= ~((3U << GPIO_MODER_MODE6_Pos) | (3U << GPIO_MODER_MODE7_Pos));
+    GPIOB->MODER  |=  (1U << GPIO_MODER_MODE6_Pos)  | (1U << GPIO_MODER_MODE7_Pos);
+    GPIOB->OTYPER |=  (1U << 6) | (1U << 7);   /* open-drain */
+
+    GPIOB->BSRR = (1U << 7);  /* release SDA high */
+    delay_short(2000);
+
+    /* Clock SCL up to 9 times until SDA is released */
+    for (int i = 0; i < 9; i++) {
+        GPIOB->BSRR = (1U << 22);  /* SCL low  (BR6 = bit 22) */
+        delay_short(2000);
+        GPIOB->BSRR = (1U << 6);   /* SCL high */
+        delay_short(2000);
+        if (GPIOB->IDR & (1U << 7)) break;  /* SDA released */
+    }
+
+    /* Generate manual STOP: SDA low→high while SCL is high */
+    GPIOB->BSRR = (1U << 23);  /* SDA low  (BR7 = bit 23) */
+    delay_short(2000);
+    GPIOB->BSRR = (1U << 6);   /* SCL high */
+    delay_short(2000);
+    GPIOB->BSRR = (1U << 7);   /* SDA high → STOP condition */
+    delay_short(2000);
 }
 
 void i2c_reset(void){
@@ -23,11 +52,15 @@ void i2c_reset(void){
     I2C1->TRISE = 17;
     I2C1->CR1  |= I2C_CR1_PE;
     uint32_t t = 50000;
+    uint32_t timeout = 10000;
+    while (((GPIOB->IDR & (1U << 6)) == 0 || (GPIOB->IDR & (1U << 7)) == 0) && --timeout) {
+           // Wait for bus idle
+       }
     while((I2C1->SR2 & I2C_SR2_BUSY) && --t);
 }
 
 void i2c_gpio_init(void){
-    //PB6=SCL, PB7=SDA:
+    //PB6=SCL, PB7=SDA
     GPIOB->MODER   &= ~((3U << GPIO_MODER_MODE6_Pos) | (3U << GPIO_MODER_MODE7_Pos));
     GPIOB->MODER   |=  (2U << GPIO_MODER_MODE6_Pos)  | (2U << GPIO_MODER_MODE7_Pos);
     GPIOB->OTYPER  |=  (1U << 6) | (1U << 7);

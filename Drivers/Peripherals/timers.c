@@ -28,7 +28,7 @@ void timer_init(void) {
 	TIM4->CCER |= (1U << TIM_CCER_CC3E_Pos);
 	TIM4->CCR3 = 2000;
 	TIM4->CR1 |= (TIM_CR1_CEN);
-	NVIC_SetPriority(TIM4_IRQn,5);
+	NVIC_SetPriority(TIM4_IRQn, 5);
 	NVIC_EnableIRQ(TIM4_IRQn);
 	//tim2_ch1 for led blink when temp rises
 
@@ -47,24 +47,33 @@ void timer_init(void) {
 	TIM2->CCR1 = 1999;
 
 	//tim1_ch2(pa9) for dc motor speed
-	TIM1->PSC = 7;
+	GPIOA->MODER &= ~(GPIO_MODER_MODE9);
+	GPIOA->MODER |= 2U << GPIO_MODER_MODE9_Pos;
+	//afr
+	GPIOA->AFR[1] &= ~(0xFU << GPIO_AFRH_AFSEL9_Pos);
+	GPIOA->AFR[1] |= (1U << GPIO_AFRH_AFSEL9_Pos);
+
+	TIM1->PSC = 15;
 	TIM1->ARR = 999;
 	TIM1->EGR |= (1U << TIM_EGR_UG_Pos);
 	TIM1->SR = 0;
-	TIM1->CCMR1	|= (6U << TIM_CCMR1_OC2M_Pos) | (1U << TIM_CCMR1_OC2PE_Pos);
+	TIM1->CCMR1 |= (6U << TIM_CCMR1_OC2M_Pos) | (1U << TIM_CCMR1_OC2PE_Pos);
+	TIM1->BDTR |= TIM_BDTR_MOE;
 	TIM1->CCER |= (TIM_CCER_CC2E);
 	TIM1->CCR2 = 0;
 }
 
-void TIM4_IRQHandler(void){
-	if(TIM4->SR & TIM_SR_UIF){
+void TIM4_IRQHandler(void) {
+	if (TIM4->SR & TIM_SR_UIF) {
 		TIM4->SR &= ~(TIM_SR_UIF);
-			if(TIM4->CCR3 > pwm_target) TIM4->CCR3 -= 20;
-			else if(TIM4->CCR3 < pwm_target) TIM4->CCR3 += 20;
-			else {
-				TIM4->DIER &= ~(TIM_DIER_UIE);
-				pwm_target = 0;
-			}
+		if (TIM4->CCR3 > pwm_target)
+			TIM4->CCR3 -= 20;
+		else if (TIM4->CCR3 < pwm_target)
+			TIM4->CCR3 += 20;
+		else {
+			TIM4->DIER &= ~(TIM_DIER_UIE);
+			pwm_target = 0;
+		}
 	}
 }
 

@@ -6,7 +6,6 @@ typedef enum{
 	HEATING_PROCESS = (1U << 2),
 	START_COOLING = (1U << 3),
 	START_HEATING = (1U << 4),
-
 	START_SYS = (1U << 7)
 } process;
 
@@ -30,8 +29,8 @@ typedef struct{
 #define Rfix 10000.0f
 
 //you can adjust these values based on your specific requirements
-#define optimum_temp_low 22.0f 
-#define optimum_temp_high 28.0f
+#define optimum_temp_low 100.0f
+#define optimum_temp_high 110.0f
 
 
 #endif

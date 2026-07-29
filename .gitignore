@@ -1,14 +1,6 @@
-# Build folders
-Debug/
-Release/
-bin/
-obj/
-
-# IDE Specific
-.settings/
-.metadata/
-*.launch
-
-# User-specific
-*.bak
-*.p_bak
+Debug
+.settings
+.project
+cold_chain Debug.launch
+cold_chain_new Debug.launch
+.cproject
